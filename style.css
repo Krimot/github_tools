@@ -11,6 +11,13 @@ body {
     width: 90%;
 }
 
+.flex-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px; /* トグルボタンとスライダーの間のスペースを設定 */
+}
+
 #inputText, #outputText {
     width: 90%;
     box-sizing: border-box;
@@ -71,4 +78,49 @@ body {
 @keyframes fadeout {
     from {bottom: 30px; opacity: 1;}
     to {bottom: 0; opacity: 0;}
+}
+
+.wideToggle-container {
+    position: relative;
+    background-color: #e8e8e8;
+    border-radius: 40px;
+    padding: 2px;
+    display: flex;
+    width: 140px;
+    justify-content: left;
+    cursor: pointer;
+}
+
+.labels-container {
+    position: relative;
+    display: flex;
+    width: 100%;
+    padding: 2px 8px 2px 12px;
+    justify-content: space-between;
+    pointer-events: none; /* ラベルをクリックしてもトグルが動作するように */
+    z-index: 2; /* ラベルを前面に配置 */
+}
+
+.label {
+    color: #9d9d9d; /* 選択されていないラベルの色 */
+}
+
+.label.active {
+    color: #fafafa; /* アクティブなラベルの色 */
+    font-weight: bold;
+}
+
+.toggle-btn {
+    position: absolute;
+    background-color: rgb(70, 70, 70);
+    border-radius: 40px;
+    padding: 14px 10px;
+    width: 20px;
+    transition: all 0.3s ease-in-out;
+    z-index: 1; /* ボタンを背面に配置 */
+}
+
+.toggle-btn.active {
+    transform: translateX(40px);
+    width: 80px;
 }

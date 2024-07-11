@@ -1,19 +1,35 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>github画像変換</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
     <div class="container">
-        <h1>githubクソデカ画像→markdownの表に変換</h1>
-        <p>コンパクトで嬉しい😊</p>
-        <textarea id="inputText" placeholder="ここにgithubの画像リンクをコピペ"></textarea>
-        <div class="spacer"></div>
-        <div id="outputText">変換後の内容：ここをクリックでコピー</div>
-        <div id="toast" class="toast">コピー完了:<br><span id="toastContent"></span></div>
+      <h1>githubのクソデカ画像をｷｭｯとさせる</h1>
+      <div class="flex-container">
+        <div class="wideToggle-container" onclick="toggleSwitch()">
+          <div class="labels-container">
+            <span class="label left-label active">表</span>
+            <span class="label right-label">サイズ指定</span>
+          </div>
+          <div class="toggle-btn"></div>
+        </div>
+        <input type="range" id="sizeSlider" min="10" max="1000" value="300" />
+        <label for="sizeSlider" id="sliderValue">300px</label>
+      </div>
+      <div class="spacer"></div>
+      <textarea
+        id="inputText"
+        placeholder="ここにgithubの画像リンクをコピペ"
+      ></textarea>
+      <div class="spacer"></div>
+      <div id="outputText">変換後の内容：ここをクリックでコピー</div>
+      <div id="toast" class="toast">
+        コピー完了:<br /><span id="toastContent"></span>
+      </div>
     </div>
     <script src="script.js"></script>
-</body>
+  </body>
 </html>

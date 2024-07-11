@@ -1,14 +1,62 @@
-// githubに複数枚貼り付けた画像のURLをMarkdownの表に変換する
 document.getElementById('inputText').addEventListener('input', function() {
+    convertText();
+});
+
+document.getElementById('sizeSlider').addEventListener('input', function() {
+    document.getElementById('sliderValue').innerText = document.getElementById('sizeSlider').value + 'px';
+    convertText();
+});
+
+let imageIsActive = false; // 初期モード(false)は表 trueは画像サイズ指定
+
+function convertText() {
     var inputText = document.getElementById('inputText').value;
     var elements = inputText.split('\n').filter(function(element) {
         return element.trim() !== ''; // 空の行を削除
     });
-    var header =  new Array(elements.length + 1).join('| ') + '|' ; // ヘッダー行（ | | | | ）を生成
-    var outputLine = '|' + elements.join('|') + '|'; // 要素をMarkdownの表形式に変換( |111|222|333|444| )
-    var outputText = header + '\n|' + new Array(elements.length + 1).join('---|') + '\n' + outputLine; // ヘッダー行と|---|---|---|と変換した要素を結合
+    var outputText = '';
+
+    if (imageIsActive === false) {
+        var header = new Array(elements.length + 1).join('| ') + '|';
+        var outputLine = '|' + elements.join('|') + '|';
+        outputText = header + '\n|' + new Array(elements.length + 1).join('---|') + '\n' + outputLine;
+    } else if (imageIsActive === true) {
+        var size = document.getElementById('sizeSlider').value;
+        var urlRegex = /\((https?:\/\/[^\s)]+)\)/; // URLを抽出する正規表現
+        var mappedElements = elements.map(function(element) {
+            var match = element.match(urlRegex);
+            return match ? `<img src="${match[1]}" width="${size}px">` : '';
+        });
+
+        outputText = mappedElements.join('\n');
+
+        // URLが含まれていない場合のメッセージ
+        if (!mappedElements.some(element => element !== '')) {
+            outputText = "画像URLがありません";
+        }
+    }
+
     document.getElementById('outputText').innerText = outputText;
-});
+}
+
+function toggleSwitch() {
+    imageIsActive = !imageIsActive;
+
+    const toggleButton = document.querySelector('.toggle-btn');
+    const leftLabel = document.querySelector('.left-label');
+    const rightLabel = document.querySelector('.right-label');
+
+    if (imageIsActive) {
+        toggleButton.classList.add('active');
+        leftLabel.classList.remove('active');
+        rightLabel.classList.add('active');
+    } else {
+        toggleButton.classList.remove('active');
+        leftLabel.classList.add('active');
+        rightLabel.classList.remove('active');
+    }
+    convertText(); // トグルの状態を変更した後に変換を実行
+}
 
 // 変換後のテキストをクリックしたらクリップボードにコピーする
 document.getElementById('outputText').addEventListener('click', async function() {
