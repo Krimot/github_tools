@@ -20,6 +20,10 @@ function convertText() {
         var header = new Array(elements.length + 1).join('| ') + '|';
         var outputLine = '|' + elements.join('|') + '|';
         outputText = header + '\n|' + new Array(elements.length + 1).join('---|') + '\n' + outputLine;
+        // 入力が改行とスペースのみの場合のメッセージ
+        if (!elements.some(element => element !== '')) {
+            outputText = "有効な文字列がありません";
+        }
     } else if (imageIsActive === true) {
         var size = document.getElementById('sizeSlider').value;
         var urlRegex = /\((https?:\/\/[^\s)]+)\)/; // URLを抽出する正規表現
@@ -27,9 +31,7 @@ function convertText() {
             var match = element.match(urlRegex);
             return match ? `<img src="${match[1]}" width="${size}px">` : '';
         });
-
         outputText = mappedElements.join('\n');
-
         // URLが含まれていない場合のメッセージ
         if (!mappedElements.some(element => element !== '')) {
             outputText = "画像URLがありません";
@@ -68,7 +70,7 @@ document.getElementById('outputText').addEventListener('click', async function()
         console.error('Error in copy text: ', err);
     }
     
-    // トースト表示の処理
+    // コピーしたことを知らせるためトーストを表示
     var toast = document.getElementById('toast');
     document.getElementById('toastContent').innerText = document.getElementById('outputText').innerText;
     toast.className = "toast show";
