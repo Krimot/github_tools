@@ -23,6 +23,7 @@ body {
     box-sizing: border-box;
     padding: 10px;
     margin: 0 auto;
+    font-family: monospace;
 }
 
 #inputText {
