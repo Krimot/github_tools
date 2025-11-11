@@ -4,6 +4,19 @@ body {
     justify-content: center;
     align-items: center;
     margin: 0;
+    position: relative;
+    min-height: 100vh;
+    background-color: #f0f0f0;
+}
+
+#dotCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
 }
 
 .container {
