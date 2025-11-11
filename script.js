@@ -52,7 +52,7 @@ function highlightGrid(rows, cols) {
         }
     });
 
-    document.getElementById('gridLabel').innerText = `${cols}×${rows} ▼`;
+    document.getElementById('gridLabel').innerText = `${cols}列 × ${rows}行 ▼`;
 }
 
 // グリッドを選択
@@ -67,7 +67,7 @@ function selectGrid(rows, cols) {
 
 // グリッドラベルを更新
 function updateGridLabel() {
-    document.getElementById('gridLabel').innerText = `${gridCols}×${gridRows} ▼`;
+    document.getElementById('gridLabel').innerText = `${gridCols}列 × ${gridRows}行 ▼`;
 }
 
 // グリッドコンテナからマウスが離れたときの処理
@@ -104,19 +104,12 @@ function autoAdjustColumns() {
     if (count === 0) {
         gridCols = 2;
         gridRows = 1;
-    } else if (count <= 2) {
-        gridCols = 2;
-        gridRows = 1;
-    } else if (count <= 3) {
-        gridCols = 3;
-        gridRows = 1;
-    } else if (count <= 4) {
-        gridCols = 4;
-        gridRows = 1;
     } else if (count <= 6) {
-        gridCols = 3;
-        gridRows = Math.ceil(count / 3);
+        // 6個以下は1行で表示
+        gridCols = count;
+        gridRows = 1;
     } else {
+        // 7個以上は4列で折り返し
         gridCols = 4;
         gridRows = Math.ceil(count / 4);
     }
