@@ -2,9 +2,8 @@
 const canvas = document.getElementById('dotCanvas');
 const ctx = canvas.getContext('2d');
 let dots = [];
-const DOT_SPACING = 8;
-const DOT_RADIUS = 1;
-const DOT_COLOR = 'rgba(100, 100, 100, 0.3)';
+const DOT_SPACING = 40;
+const DOT_BASE_RADIUS = 2;
 
 // Canvas size setup
 function resizeCanvas() {
@@ -16,19 +15,19 @@ function resizeCanvas() {
 // Initialize dots
 function initDots() {
     dots = [];
-    for (let y = 0; y < canvas.height + DOT_SPACING; y += DOT_SPACING) {
-        for (let x = 0; x < canvas.width + DOT_SPACING; x += DOT_SPACING) {
+    for (let y = -DOT_SPACING; y < canvas.height + DOT_SPACING; y += DOT_SPACING) {
+        for (let x = -DOT_SPACING; x < canvas.width + DOT_SPACING; x += DOT_SPACING) {
             dots.push({
-                x: x,
-                y: y,
                 baseX: x,
                 baseY: y,
-                targetX: x,
-                targetY: y,
+                baseZ: 0,
                 currentX: x,
                 currentY: y,
+                currentZ: 0,
+                targetZ: 0,
                 phase: Math.random() * Math.PI * 2,
-                speed: 0.02 + Math.random() * 0.01
+                speed: 0.5 + Math.random() * 0.5,
+                phaseOffset: Math.random() * Math.PI * 2
             });
         }
     }
@@ -39,52 +38,58 @@ function updateDots() {
     const time = Date.now() * 0.001;
 
     dots.forEach(dot => {
-        // Base gentle movement
-        const gentleX = Math.sin(time * dot.speed + dot.phase) * 1.5;
-        const gentleY = Math.cos(time * dot.speed + dot.phase * 1.3) * 1.5;
-
         if (imageIsActive === false) {
-            // Table mode: Grid formation with intensity variation
-            const gridOffsetX = Math.sin(dot.baseY * 0.1 + time * 0.5) * 2;
-            const gridOffsetY = Math.cos(dot.baseX * 0.1 + time * 0.5) * 2;
-            const intensity = (Math.sin(dot.baseX * 0.05 + time * 0.3) + Math.cos(dot.baseY * 0.05 + time * 0.4)) * 0.5;
+            // Table mode: Grid formation with 3D wave effect
+            // ほぼ位置は固定、Z軸で濃淡を表現
+            const waveX = Math.sin(dot.baseX * 0.02 + time * 0.8) * Math.cos(dot.baseY * 0.02 + time * 0.6);
+            const waveY = Math.cos(dot.baseX * 0.015 + time * 0.7) * Math.sin(dot.baseY * 0.015 + time * 0.5);
 
-            dot.targetX = dot.baseX + gridOffsetX + intensity * 3;
-            dot.targetY = dot.baseY + gridOffsetY + intensity * 3;
+            dot.targetZ = (waveX + waveY) * 50 + 30;
+
+            // わずかな位置の揺れ
+            dot.currentX = dot.baseX + Math.sin(time * 0.3 + dot.phase) * 0.5;
+            dot.currentY = dot.baseY + Math.cos(time * 0.3 + dot.phaseOffset) * 0.5;
         } else {
-            // Size mode: Wave toward center
+            // Size mode: 3D wave toward center
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
             const dx = dot.baseX - centerX;
             const dy = dot.baseY - centerY;
             const distance = Math.sqrt(dx * dx + dy * dy);
 
-            const waveOffset = Math.sin(distance * 0.05 - time * 2) * 5;
-            const angle = Math.atan2(dy, dx);
+            // 中心からの距離に基づく波
+            const wave = Math.sin(distance * 0.02 - time * 2) * 80;
+            dot.targetZ = wave + 50;
 
-            dot.targetX = dot.baseX + Math.cos(angle) * waveOffset;
-            dot.targetY = dot.baseY + Math.sin(angle) * waveOffset;
+            // 波に合わせてわずかに位置を動かす
+            const angle = Math.atan2(dy, dx);
+            const posWave = Math.sin(distance * 0.02 - time * 2) * 3;
+            dot.currentX = dot.baseX + Math.cos(angle) * posWave;
+            dot.currentY = dot.baseY + Math.sin(angle) * posWave;
         }
 
-        // Add gentle movement
-        dot.targetX += gentleX;
-        dot.targetY += gentleY;
-
-        // Smooth interpolation
-        const ease = 0.05;
-        dot.currentX += (dot.targetX - dot.currentX) * ease;
-        dot.currentY += (dot.targetY - dot.currentY) * ease;
+        // Smooth Z interpolation
+        const ease = 0.08;
+        dot.currentZ += (dot.targetZ - dot.currentZ) * ease;
     });
 }
 
-// Render dots
+// Render dots with 3D effect
 function renderDots() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     dots.forEach(dot => {
+        // パースペクティブ計算
+        const perspective = 800;
+        const scale = perspective / (perspective + dot.currentZ);
+
+        // Z値に基づいてサイズと不透明度を変化
+        const radius = DOT_BASE_RADIUS * (1 + dot.currentZ / 100);
+        const opacity = Math.max(0.2, Math.min(1, (dot.currentZ + 50) / 150));
+
         ctx.beginPath();
-        ctx.arc(dot.currentX, dot.currentY, DOT_RADIUS, 0, Math.PI * 2);
-        ctx.fillStyle = DOT_COLOR;
+        ctx.arc(dot.currentX, dot.currentY, radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
         ctx.fill();
     });
 }
