@@ -3,8 +3,8 @@ const canvas = document.getElementById('dotCanvas');
 const ctx = canvas.getContext('2d');
 let dots = [];
 const DOT_SPACING = 15;
-const DOT_BASE_RADIUS = 2;
-const DOT_MAX_RADIUS = 4;
+const DOT_BASE_RADIUS = 1.5;
+const DOT_MAX_RADIUS = 3;
 const GRID_LINE_SPACING = 120; // 格子線の間隔
 
 // Canvas size setup
@@ -22,7 +22,7 @@ function getDistanceToNearestGridLine(x, y) {
 }
 
 // 距離に基づいて表示確率を計算（密度で格子を表現）
-function getShouldDisplay(distance) {
+function getShouldDisplayInGridMode(distance) {
     // 格子線に近いほど密度を高くする
     if (distance < 15) {
         return true; // 100%表示（格子線上）
@@ -38,23 +38,19 @@ function initDots() {
     dots = [];
     for (let y = -DOT_SPACING; y < canvas.height + DOT_SPACING; y += DOT_SPACING) {
         for (let x = -DOT_SPACING; x < canvas.width + DOT_SPACING; x += DOT_SPACING) {
-            const distToLine = getDistanceToNearestGridLine(x, y);
-
-            // 格子線からの距離に基づいて表示するかどうかを決定
-            if (getShouldDisplay(distToLine)) {
-                dots.push({
-                    baseX: x,
-                    baseY: y,
-                    baseZ: 0,
-                    currentX: x,
-                    currentY: y,
-                    currentZ: 0,
-                    targetZ: 0,
-                    phase: Math.random() * Math.PI * 2,
-                    speed: 0.5 + Math.random() * 0.5,
-                    phaseOffset: Math.random() * Math.PI * 2
-                });
-            }
+            // 全てのドットを作成（格子判定は描画時に行う）
+            dots.push({
+                baseX: x,
+                baseY: y,
+                baseZ: 0,
+                currentX: x,
+                currentY: y,
+                currentZ: 0,
+                targetZ: 0,
+                phase: Math.random() * Math.PI * 2,
+                speed: 0.5 + Math.random() * 0.5,
+                phaseOffset: Math.random() * Math.PI * 2
+            });
         }
     }
 }
@@ -82,7 +78,7 @@ function updateDots() {
             dot.currentX = dot.baseX + bigWaveX + secondaryWaveX;
             dot.currentY = dot.baseY + bigWaveY + secondaryWaveY;
         } else {
-            // Size mode: 3D wave toward center
+            // Size mode: 3D wave toward center (no grid)
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
             const dx = dot.baseX - centerX;
@@ -111,6 +107,15 @@ function renderDots() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     dots.forEach(dot => {
+        // 表モードの場合のみ格子判定を行う
+        if (imageIsActive === false) {
+            const distToLine = getDistanceToNearestGridLine(dot.baseX, dot.baseY);
+            if (!getShouldDisplayInGridMode(distToLine)) {
+                return; // このドットは表示しない
+            }
+        }
+        // サイズ指定モードでは全て表示
+
         // Z値に基づいてサイズと不透明度をわずかに変化（主に密度で表現）
         const zFactor = (dot.currentZ + 40) / 180; // 0～1の範囲に正規化
         const radius = DOT_BASE_RADIUS + (DOT_MAX_RADIUS - DOT_BASE_RADIUS) * Math.max(0, Math.min(1, zFactor)) * 0.5;
