@@ -139,7 +139,7 @@ function convertText() {
             var lines = [];
 
             // ヘッダー行
-            var headerCells = new Array(gridCols).fill('').join('|');
+            var headerCells = new Array(gridCols).fill('  ').join('|');
             lines.push('|' + headerCells + '|');
 
             // 区切り行
@@ -173,7 +173,11 @@ function convertText() {
         }
     }
 
-    document.getElementById('outputText').innerText = outputText;
+    // 改行を薄い記号で表示
+    var displayText = outputText.replace(/\n/g, '<span class="newline-symbol">⏎</span>\n');
+    document.getElementById('outputText').innerHTML = displayText;
+    // コピー用に元のテキストを保存
+    document.getElementById('outputText').dataset.originalText = outputText;
 }
 
 function toggleSwitch() {
@@ -203,7 +207,8 @@ function toggleSwitch() {
 
 // 変換後のテキストをクリックしたらクリップボードにコピーする
 document.getElementById('outputText').addEventListener('click', async function() {
-    var outputText = document.getElementById('outputText').innerText;
+    // 改行記号を含まない元のテキストをコピー
+    var outputText = document.getElementById('outputText').dataset.originalText || document.getElementById('outputText').innerText;
     try {
         await navigator.clipboard.writeText(outputText);
         console.log('Text copied to clipboard');
@@ -213,7 +218,7 @@ document.getElementById('outputText').addEventListener('click', async function()
 
     // コピーしたことを知らせるためトーストを表示
     var toast = document.getElementById('toast');
-    document.getElementById('toastContent').innerText = document.getElementById('outputText').innerText;
+    document.getElementById('toastContent').innerText = outputText;
     toast.className = "toast show";
     setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
 });
