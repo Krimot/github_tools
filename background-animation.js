@@ -5,7 +5,7 @@ let dots = [];
 const DOT_SPACING = 15;
 const DOT_BASE_RADIUS = 1.5;
 const DOT_MAX_RADIUS = 3;
-const GRID_LINE_SPACING = 120; // 格子線の間隔
+const GRID_LINE_SPACING = 150; // 格子線の間隔
 
 // Canvas size setup
 function resizeCanvas() {
@@ -88,13 +88,13 @@ function updateDots() {
             const dy = dot.baseY - centerY;
             const distance = Math.sqrt(dx * dx + dy * dy);
 
-            // 中心からの距離に基づく波
-            const wave = Math.sin(distance * 0.02 - time * 2) * 100;
+            // 中心からの距離に基づく波（中心に向かう）
+            const wave = Math.sin(distance * 0.02 + time * 2) * 100;
             dot.targetZ = wave + 60;
 
             // 波に合わせて位置を動かす
             const angle = Math.atan2(dy, dx);
-            const posWave = Math.sin(distance * 0.02 - time * 2) * 10;
+            const posWave = Math.sin(distance * 0.02 + time * 2) * 10;
 
             dot.targetX = dot.baseX + Math.cos(angle) * posWave + bigWaveX + secondaryWaveX;
             dot.targetY = dot.baseY + Math.sin(angle) * posWave + bigWaveY + secondaryWaveY;
