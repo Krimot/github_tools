@@ -3,7 +3,8 @@ const canvas = document.getElementById('dotCanvas');
 const ctx = canvas.getContext('2d');
 let dots = [];
 const DOT_SPACING = 15;
-const DOT_BASE_RADIUS = 2;
+const DOT_BASE_RADIUS = 1.5;
+const DOT_MAX_RADIUS = 4;
 const GRID_LINE_SPACING = 120; // 格子線の間隔
 
 // Canvas size setup
@@ -13,32 +14,53 @@ function resizeCanvas() {
     initDots();
 }
 
-// Initialize dots
-function initDots() {
-    dots = [];
-    for (let y = -DOT_SPACING; y < canvas.height + DOT_SPACING; y += DOT_SPACING) {
-        for (let x = -DOT_SPACING; x < canvas.width + DOT_SPACING; x += DOT_SPACING) {
-            dots.push({
-                baseX: x,
-                baseY: y,
-                baseZ: 0,
-                currentX: x,
-                currentY: y,
-                currentZ: 0,
-                targetZ: 0,
-                phase: Math.random() * Math.PI * 2,
-                speed: 0.5 + Math.random() * 0.5,
-                phaseOffset: Math.random() * Math.PI * 2
-            });
-        }
-    }
-}
-
 // 最も近い格子線からの距離を計算
 function getDistanceToNearestGridLine(x, y) {
     const distToVerticalLine = Math.abs((x % GRID_LINE_SPACING) - GRID_LINE_SPACING / 2);
     const distToHorizontalLine = Math.abs((y % GRID_LINE_SPACING) - GRID_LINE_SPACING / 2);
     return Math.min(distToVerticalLine, distToHorizontalLine);
+}
+
+// 距離に基づいて表示確率を計算
+function getShouldDisplay(distance) {
+    // 格子線から30px以内：100%表示
+    // 30-60px：確率的に表示
+    // 60px以上：まばらに表示
+    if (distance < 30) {
+        return true;
+    } else if (distance < 45) {
+        return Math.random() > 0.3; // 70%の確率で表示
+    } else if (distance < 60) {
+        return Math.random() > 0.7; // 30%の確率で表示
+    } else {
+        return Math.random() > 0.85; // 15%の確率で表示
+    }
+}
+
+// Initialize dots
+function initDots() {
+    dots = [];
+    for (let y = -DOT_SPACING; y < canvas.height + DOT_SPACING; y += DOT_SPACING) {
+        for (let x = -DOT_SPACING; x < canvas.width + DOT_SPACING; x += DOT_SPACING) {
+            const distToLine = getDistanceToNearestGridLine(x, y);
+
+            // 格子線からの距離に基づいて表示するかどうかを決定
+            if (getShouldDisplay(distToLine)) {
+                dots.push({
+                    baseX: x,
+                    baseY: y,
+                    baseZ: 0,
+                    currentX: x,
+                    currentY: y,
+                    currentZ: 0,
+                    targetZ: 0,
+                    phase: Math.random() * Math.PI * 2,
+                    speed: 0.5 + Math.random() * 0.5,
+                    phaseOffset: Math.random() * Math.PI * 2
+                });
+            }
+        }
+    }
 }
 
 // Update dot positions based on mode
@@ -53,21 +75,12 @@ function updateDots() {
         const secondaryWaveY = Math.cos(time * 0.55 + dot.phaseOffset * 1.3) * 5;
 
         if (imageIsActive === false) {
-            // Table mode: Grid formation with lines
-            // 格子線からの距離を計算
-            const distToLine = getDistanceToNearestGridLine(dot.baseX, dot.baseY);
-
-            // 格子線に近いほど強く表示
-            const lineStrength = 1 - Math.min(distToLine / 30, 1);
-
-            // Z軸で格子線の強さを表現
-            const baseZ = lineStrength * 80 + 20;
-
+            // Table mode: Grid formation with density
             // 波状の動き
             const waveX = Math.sin(dot.baseX * 0.02 + time * 0.8) * Math.cos(dot.baseY * 0.02 + time * 0.6);
             const waveY = Math.cos(dot.baseX * 0.015 + time * 0.7) * Math.sin(dot.baseY * 0.015 + time * 0.5);
 
-            dot.targetZ = baseZ + (waveX + waveY) * 30;
+            dot.targetZ = (waveX + waveY) * 50 + 40;
 
             // 大きな揺れを適用（基本位置からの相対移動）
             dot.currentX = dot.baseX + bigWaveX + secondaryWaveX;
@@ -103,8 +116,11 @@ function renderDots() {
 
     dots.forEach(dot => {
         // Z値に基づいてサイズと不透明度を変化
-        const radius = DOT_BASE_RADIUS * (1 + dot.currentZ / 80);
-        const opacity = Math.max(0.1, Math.min(1, (dot.currentZ + 20) / 130));
+        const zFactor = (dot.currentZ + 40) / 180; // 0～1の範囲に正規化
+        const radius = DOT_BASE_RADIUS + (DOT_MAX_RADIUS - DOT_BASE_RADIUS) * Math.max(0, Math.min(1, zFactor));
+
+        // 不透明度：最小0.3、最大1.0
+        const opacity = Math.max(0.3, Math.min(1, 0.3 + zFactor * 0.7));
 
         ctx.beginPath();
         ctx.arc(dot.currentX, dot.currentY, radius, 0, Math.PI * 2);
