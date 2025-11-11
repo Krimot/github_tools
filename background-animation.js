@@ -112,12 +112,24 @@ function updateDots() {
 function renderDots() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const maxDistance = Math.sqrt(centerX * centerX + centerY * centerY);
+
     // 全てのドットを表示
     dots.forEach(dot => {
         // Z値に基づいてサイズと不透明度をわずかに変化
         const zFactor = (dot.currentZ + 40) / 180;
         const radius = DOT_BASE_RADIUS + (DOT_MAX_RADIUS - DOT_BASE_RADIUS) * Math.max(0, Math.min(1, zFactor)) * 0.5;
-        const opacity = Math.max(0.6, Math.min(1, 0.6 + zFactor * 0.4));
+
+        // 画面中心からの距離に基づいて暗くする
+        const dx = dot.currentX - centerX;
+        const dy = dot.currentY - centerY;
+        const distanceFromCenter = Math.sqrt(dx * dx + dy * dy);
+        const edgeFade = 1 - Math.pow(distanceFromCenter / maxDistance, 2) * 0.7; // 周囲を最大70%暗く
+
+        let opacity = Math.max(0.6, Math.min(1, 0.6 + zFactor * 0.4));
+        opacity *= edgeFade; // 周囲のフェード効果を適用
 
         ctx.beginPath();
         ctx.arc(dot.currentX, dot.currentY, radius, 0, Math.PI * 2);
