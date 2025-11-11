@@ -201,8 +201,14 @@ function convertText() {
         }
     }
 
-    // 改行を薄い記号で表示
-    var displayText = outputText.replace(/\n/g, '<span class="newline-symbol">⏎</span>\n');
+    // HTMLタグをエスケープしてから改行記号を追加
+    var escapedText = outputText
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    var displayText = escapedText.replace(/\n/g, '<span class="newline-symbol">⏎</span>\n');
     document.getElementById('outputText').innerHTML = displayText;
     // コピー用に元のテキストを保存
     document.getElementById('outputText').dataset.originalText = outputText;
