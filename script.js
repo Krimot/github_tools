@@ -1,3 +1,13 @@
+// ========== Global Variables ==========
+let imageIsActive = false; // 初期モード(false)は表 trueは画像サイズ指定
+let gridRows = 1;
+let gridCols = 2;
+let isManuallySet = false; // 手動で変更されたかどうかのフラグ
+let currentGridCols = 6; // 現在表示している列数
+let currentGridRows = 6; // 現在表示している行数
+const MAX_COLS = 12;
+const MAX_ROWS = 24;
+
 // ========== Background Dot Animation ==========
 const canvas = document.getElementById('dotCanvas');
 const ctx = canvas.getContext('2d');
@@ -111,15 +121,6 @@ document.getElementById('sizeSlider').addEventListener('input', function() {
     document.getElementById('sliderValue').innerText = document.getElementById('sizeSlider').value + 'px';
     convertText();
 });
-
-let imageIsActive = false; // 初期モード(false)は表 trueは画像サイズ指定
-let gridRows = 1;
-let gridCols = 2;
-let isManuallySet = false; // 手動で変更されたかどうかのフラグ
-let currentGridCols = 6; // 現在表示している列数
-let currentGridRows = 6; // 現在表示している行数
-const MAX_COLS = 12;
-const MAX_ROWS = 24;
 
 // グリッドセルを生成
 function initializeGrid() {
