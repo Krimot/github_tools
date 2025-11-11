@@ -12,21 +12,38 @@ let imageIsActive = false; // 初期モード(false)は表 trueは画像サイ�
 let gridRows = 1;
 let gridCols = 2;
 let isManuallySet = false; // 手動で変更されたかどうかのフラグ
+let currentGridCols = 6; // 現在表示している列数
+let currentGridRows = 6; // 現在表示している行数
+const MAX_COLS = 12;
+const MAX_ROWS = 24;
 
 // グリッドセルを生成
 function initializeGrid() {
     const container = document.getElementById('gridContainer');
     container.innerHTML = '';
 
-    for (let row = 0; row < 6; row++) {
-        for (let col = 0; col < 6; col++) {
+    for (let row = 0; row < currentGridRows; row++) {
+        for (let col = 0; col < currentGridCols; col++) {
             const cell = document.createElement('div');
             cell.className = 'grid-cell';
             cell.dataset.row = row + 1;
             cell.dataset.col = col + 1;
 
             cell.addEventListener('mouseenter', function() {
-                highlightGrid(parseInt(this.dataset.row), parseInt(this.dataset.col));
+                const cellRow = parseInt(this.dataset.row);
+                const cellCol = parseInt(this.dataset.col);
+
+                // 端に近づいたらグリッドを拡張
+                if (cellCol >= currentGridCols - 1 && currentGridCols < MAX_COLS) {
+                    currentGridCols = Math.min(cellCol + 2, MAX_COLS);
+                    expandGrid();
+                }
+                if (cellRow >= currentGridRows - 1 && currentGridRows < MAX_ROWS) {
+                    currentGridRows = Math.min(cellRow + 2, MAX_ROWS);
+                    expandGrid();
+                }
+
+                highlightGrid(cellRow, cellCol);
             });
 
             cell.addEventListener('click', function() {
@@ -36,6 +53,20 @@ function initializeGrid() {
             container.appendChild(cell);
         }
     }
+
+    updateGridContainerStyle();
+}
+
+// グリッドを拡張
+function expandGrid() {
+    initializeGrid();
+}
+
+// グリッドコンテナのスタイルを更新
+function updateGridContainerStyle() {
+    const container = document.getElementById('gridContainer');
+    container.style.gridTemplateColumns = `repeat(${currentGridCols}, 20px)`;
+    container.style.gridTemplateRows = `repeat(${currentGridRows}, 20px)`;
 }
 
 // グリッドをハイライト
@@ -82,6 +113,10 @@ function toggleGridDropdown() {
 
     if (isVisible) {
         container.style.display = 'none';
+        // 閉じたときにグリッドを初期サイズにリセット
+        currentGridCols = 6;
+        currentGridRows = 6;
+        initializeGrid();
     } else {
         container.style.display = 'grid';
         highlightGrid(gridRows, gridCols);
@@ -225,6 +260,10 @@ document.addEventListener('click', function(event) {
     // クリックがグリッド関連要素の外だったら閉じる
     if (!gridSelector.contains(event.target) && gridContainer.style.display === 'grid') {
         gridContainer.style.display = 'none';
+        // 閉じたときにグリッドを初期サイズにリセット
+        currentGridCols = 6;
+        currentGridRows = 6;
+        initializeGrid();
     }
 });
 
