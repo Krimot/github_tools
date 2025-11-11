@@ -3,7 +3,7 @@ const canvas = document.getElementById('dotCanvas');
 const ctx = canvas.getContext('2d');
 let dots = [];
 const DOT_SPACING = 15;
-const DOT_BASE_RADIUS = 1.5;
+const DOT_BASE_RADIUS = 2;
 const DOT_MAX_RADIUS = 4;
 const GRID_LINE_SPACING = 120; // 格子線の間隔
 
@@ -21,19 +21,15 @@ function getDistanceToNearestGridLine(x, y) {
     return Math.min(distToVerticalLine, distToHorizontalLine);
 }
 
-// 距離に基づいて表示確率を計算
+// 距離に基づいて表示確率を計算（密度で格子を表現）
 function getShouldDisplay(distance) {
-    // 格子線から30px以内：100%表示
-    // 30-60px：確率的に表示
-    // 60px以上：まばらに表示
-    if (distance < 30) {
-        return true;
-    } else if (distance < 45) {
-        return Math.random() > 0.3; // 70%の確率で表示
-    } else if (distance < 60) {
-        return Math.random() > 0.7; // 30%の確率で表示
+    // 格子線に近いほど密度を高くする
+    if (distance < 15) {
+        return true; // 100%表示（格子線上）
+    } else if (distance < 25) {
+        return Math.random() > 0.8; // 20%の確率で表示
     } else {
-        return Math.random() > 0.85; // 15%の確率で表示
+        return Math.random() > 0.98; // 2%の確率で表示
     }
 }
 
@@ -80,7 +76,7 @@ function updateDots() {
             const waveX = Math.sin(dot.baseX * 0.02 + time * 0.8) * Math.cos(dot.baseY * 0.02 + time * 0.6);
             const waveY = Math.cos(dot.baseX * 0.015 + time * 0.7) * Math.sin(dot.baseY * 0.015 + time * 0.5);
 
-            dot.targetZ = (waveX + waveY) * 50 + 40;
+            dot.targetZ = (waveX + waveY) * 40 + 40;
 
             // 大きな揺れを適用（基本位置からの相対移動）
             dot.currentX = dot.baseX + bigWaveX + secondaryWaveX;
@@ -115,12 +111,12 @@ function renderDots() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     dots.forEach(dot => {
-        // Z値に基づいてサイズと不透明度を変化
+        // Z値に基づいてサイズと不透明度をわずかに変化（主に密度で表現）
         const zFactor = (dot.currentZ + 40) / 180; // 0～1の範囲に正規化
-        const radius = DOT_BASE_RADIUS + (DOT_MAX_RADIUS - DOT_BASE_RADIUS) * Math.max(0, Math.min(1, zFactor));
+        const radius = DOT_BASE_RADIUS + (DOT_MAX_RADIUS - DOT_BASE_RADIUS) * Math.max(0, Math.min(1, zFactor)) * 0.5;
 
-        // 不透明度：最小0.3、最大1.0
-        const opacity = Math.max(0.3, Math.min(1, 0.3 + zFactor * 0.7));
+        // 不透明度：0.6〜1.0の範囲でわずかに変化
+        const opacity = Math.max(0.6, Math.min(1, 0.6 + zFactor * 0.4));
 
         ctx.beginPath();
         ctx.arc(dot.currentX, dot.currentY, radius, 0, Math.PI * 2);
