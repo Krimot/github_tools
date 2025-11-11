@@ -136,8 +136,18 @@ body {
     font-size: 14px;
     font-weight: bold;
     color: #333;
-    min-width: 40px;
+    min-width: 50px;
     text-align: center;
+    cursor: pointer;
+    user-select: none;
+    padding: 4px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+}
+
+.grid-label:hover {
+    background-color: #f0f0f0;
 }
 
 .grid-selector {
@@ -153,6 +163,12 @@ body {
     background-color: #f5f5f5;
     border-radius: 4px;
     border: 1px solid #ddd;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 4px;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .grid-cell {

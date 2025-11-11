@@ -1,4 +1,5 @@
 document.getElementById('inputText').addEventListener('input', function() {
+    autoAdjustColumns();
     convertText();
 });
 
@@ -8,8 +9,9 @@ document.getElementById('sizeSlider').addEventListener('input', function() {
 });
 
 let imageIsActive = false; // 初期モード(false)は表 trueは画像サイズ指定
-let gridRows = 3;
-let gridCols = 3;
+let gridRows = 1;
+let gridCols = 2;
+let isManuallySet = false; // 手動で変更されたかどうかのフラグ
 
 // グリッドセルを生成
 function initializeGrid() {
@@ -50,20 +52,77 @@ function highlightGrid(rows, cols) {
         }
     });
 
-    document.getElementById('gridLabel').innerText = `${rows}×${cols}`;
+    document.getElementById('gridLabel').innerText = `${cols}×${rows} ▼`;
 }
 
 // グリッドを選択
 function selectGrid(rows, cols) {
     gridRows = rows;
     gridCols = cols;
+    isManuallySet = true; // 手動で変更されたことを記録
+    updateGridLabel();
     convertText();
+    toggleGridDropdown(); // 選択後にグリッドを閉じる
+}
+
+// グリッドラベルを更新
+function updateGridLabel() {
+    document.getElementById('gridLabel').innerText = `${gridCols}×${gridRows} ▼`;
 }
 
 // グリッドコンテナからマウスが離れたときの処理
 document.getElementById('gridContainer').addEventListener('mouseleave', function() {
     highlightGrid(gridRows, gridCols);
 });
+
+// ドロップダウンの開閉
+function toggleGridDropdown() {
+    const container = document.getElementById('gridContainer');
+    const isVisible = container.style.display !== 'none';
+
+    if (isVisible) {
+        container.style.display = 'none';
+    } else {
+        container.style.display = 'grid';
+        highlightGrid(gridRows, gridCols);
+    }
+}
+
+// 入力内容に応じて自動的に列数を調整
+function autoAdjustColumns() {
+    if (isManuallySet || imageIsActive) {
+        return; // 手動変更済みまたは画像モードの場合は調整しない
+    }
+
+    var inputText = document.getElementById('inputText').value;
+    var elements = inputText.split('\n').filter(function(element) {
+        return element.trim() !== '';
+    });
+
+    var count = elements.length;
+
+    if (count === 0) {
+        gridCols = 2;
+        gridRows = 1;
+    } else if (count <= 2) {
+        gridCols = 2;
+        gridRows = 1;
+    } else if (count <= 3) {
+        gridCols = 3;
+        gridRows = 1;
+    } else if (count <= 4) {
+        gridCols = 4;
+        gridRows = 1;
+    } else if (count <= 6) {
+        gridCols = 3;
+        gridRows = Math.ceil(count / 3);
+    } else {
+        gridCols = 4;
+        gridRows = Math.ceil(count / 4);
+    }
+
+    updateGridLabel();
+}
 
 function convertText() {
     var inputText = document.getElementById('inputText').value;
@@ -159,6 +218,19 @@ document.getElementById('outputText').addEventListener('click', async function()
     setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
 });
 
+// グリッド外をクリックしたら閉じる
+document.addEventListener('click', function(event) {
+    const gridContainer = document.getElementById('gridContainer');
+    const gridLabel = document.getElementById('gridLabel');
+    const gridSelector = document.getElementById('gridSelector');
+
+    // クリックがグリッド関連要素の外だったら閉じる
+    if (!gridSelector.contains(event.target) && gridContainer.style.display === 'grid') {
+        gridContainer.style.display = 'none';
+    }
+});
+
 // ページ読み込み時にグリッドを初期化
 initializeGrid();
 highlightGrid(gridRows, gridCols);
+updateGridLabel();
