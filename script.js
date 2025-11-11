@@ -109,9 +109,9 @@ function autoAdjustColumns() {
         gridCols = count;
         gridRows = 1;
     } else {
-        // 7個以上は4列で折り返し
-        gridCols = 4;
-        gridRows = Math.ceil(count / 4);
+        // 7個以上は6列で折り返し
+        gridCols = 6;
+        gridRows = Math.ceil(count / 6);
     }
 
     updateGridLabel();
