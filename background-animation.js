@@ -19,6 +19,19 @@ function initDots() {
     dots = [];
     for (let y = -DOT_SPACING; y < canvas.height + DOT_SPACING; y += DOT_SPACING) {
         for (let x = -DOT_SPACING; x < canvas.width + DOT_SPACING; x += DOT_SPACING) {
+            // 市松模様をベースにしつつ、一定の確率で逆のグループに
+            const gridX = Math.floor(x / DOT_SPACING);
+            const gridY = Math.floor(y / DOT_SPACING);
+            let isVerticalGroup = (gridX + gridY) % 2 === 0;
+
+            // 30%の確率で逆のグループに入る
+            if (Math.random() < 0.3) {
+                isVerticalGroup = !isVerticalGroup;
+            }
+
+            // 格子線に向かう強さをランダムに設定（0.2～0.9の範囲）
+            const gridAttraction = 0.2 + Math.random() * 0.7;
+
             dots.push({
                 baseX: x,
                 baseY: y,
@@ -30,7 +43,9 @@ function initDots() {
                 targetZ: 0,
                 phase: Math.random() * Math.PI * 2,
                 speed: 0.5 + Math.random() * 0.5,
-                phaseOffset: Math.random() * Math.PI * 2
+                phaseOffset: Math.random() * Math.PI * 2,
+                isVerticalGroup: isVerticalGroup,
+                gridAttraction: gridAttraction
             });
         }
     }
@@ -52,20 +67,16 @@ function updateDots() {
             const nearestVerticalLine = Math.round(dot.baseX / GRID_LINE_SPACING) * GRID_LINE_SPACING;
             const nearestHorizontalLine = Math.round(dot.baseY / GRID_LINE_SPACING) * GRID_LINE_SPACING;
 
-            // ドットの位置に基づいて、縦線グループか横線グループかを決定
-            const gridX = Math.floor(dot.baseX / DOT_SPACING);
-            const gridY = Math.floor(dot.baseY / DOT_SPACING);
-            const isVerticalGroup = (gridX + gridY) % 2 === 0;
-
+            // 初期化時に決定されたグループと吸引力に基づいて移動
             let moveToGridX, moveToGridY;
-            if (isVerticalGroup) {
-                // 縦線に向かう（x方向のみ）
-                moveToGridX = (nearestVerticalLine - dot.baseX) * 0.7;
+            if (dot.isVerticalGroup) {
+                // 縦線に向かう（x方向のみ、吸引力はランダム）
+                moveToGridX = (nearestVerticalLine - dot.baseX) * dot.gridAttraction;
                 moveToGridY = 0;
             } else {
-                // 横線に向かう（y方向のみ）
+                // 横線に向かう（y方向のみ、吸引力はランダム）
                 moveToGridX = 0;
-                moveToGridY = (nearestHorizontalLine - dot.baseY) * 0.7;
+                moveToGridY = (nearestHorizontalLine - dot.baseY) * dot.gridAttraction;
             }
 
             // 波状の動き
