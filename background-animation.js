@@ -14,24 +14,6 @@ function resizeCanvas() {
     initDots();
 }
 
-// 最も近い格子線の位置を計算
-function getNearestGridLine(x, y) {
-    const nearestVerticalLine = Math.round(x / GRID_LINE_SPACING) * GRID_LINE_SPACING;
-    const nearestHorizontalLine = Math.round(y / GRID_LINE_SPACING) * GRID_LINE_SPACING;
-
-    const distToVertical = Math.abs(x - nearestVerticalLine);
-    const distToHorizontal = Math.abs(y - nearestHorizontalLine);
-
-    // より近い格子線を選択
-    if (distToVertical < distToHorizontal) {
-        // 縦線に向かう
-        return { x: nearestVerticalLine, y: y };
-    } else {
-        // 横線に向かう
-        return { x: x, y: nearestHorizontalLine };
-    }
-}
-
 // Initialize dots
 function initDots() {
     dots = [];
@@ -59,19 +41,32 @@ function updateDots() {
     const time = Date.now() * 0.001;
 
     dots.forEach(dot => {
-        // 大きな揺れを追加
-        const bigWaveX = Math.sin(time * 0.4 + dot.phase) * 8;
-        const bigWaveY = Math.cos(time * 0.35 + dot.phaseOffset) * 8;
-        const secondaryWaveX = Math.sin(time * 0.6 + dot.phase * 1.5) * 5;
-        const secondaryWaveY = Math.cos(time * 0.55 + dot.phaseOffset * 1.3) * 5;
+        // 揺れを追加
+        const bigWaveX = Math.sin(time * 0.4 + dot.phase) * 5;
+        const bigWaveY = Math.cos(time * 0.35 + dot.phaseOffset) * 5;
+        const secondaryWaveX = Math.sin(time * 0.6 + dot.phase * 1.5) * 3;
+        const secondaryWaveY = Math.cos(time * 0.55 + dot.phaseOffset * 1.3) * 3;
 
         if (imageIsActive === false) {
-            // Table mode: Move dots toward grid lines (vertical or horizontal)
-            const gridLine = getNearestGridLine(dot.baseX, dot.baseY);
+            // Table mode: Move dots toward grid lines
+            const nearestVerticalLine = Math.round(dot.baseX / GRID_LINE_SPACING) * GRID_LINE_SPACING;
+            const nearestHorizontalLine = Math.round(dot.baseY / GRID_LINE_SPACING) * GRID_LINE_SPACING;
 
-            // 格子線に向かって移動（完全には到達しない）
-            const moveToGridX = (gridLine.x - dot.baseX) * 0.6;
-            const moveToGridY = (gridLine.y - dot.baseY) * 0.6;
+            // ドットの位置に基づいて、縦線グループか横線グループかを決定
+            const gridX = Math.floor(dot.baseX / DOT_SPACING);
+            const gridY = Math.floor(dot.baseY / DOT_SPACING);
+            const isVerticalGroup = (gridX + gridY) % 2 === 0;
+
+            let moveToGridX, moveToGridY;
+            if (isVerticalGroup) {
+                // 縦線に向かう（x方向のみ）
+                moveToGridX = (nearestVerticalLine - dot.baseX) * 0.7;
+                moveToGridY = 0;
+            } else {
+                // 横線に向かう（y方向のみ）
+                moveToGridX = 0;
+                moveToGridY = (nearestHorizontalLine - dot.baseY) * 0.7;
+            }
 
             // 波状の動き
             const waveX = Math.sin(dot.baseX * 0.02 + time * 0.8) * Math.cos(dot.baseY * 0.02 + time * 0.6);
