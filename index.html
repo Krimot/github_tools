@@ -16,8 +16,16 @@
           </div>
           <div class="toggle-btn"></div>
         </div>
-        <input type="range" id="sizeSlider" min="10" max="1000" value="300" />
-        <label for="sizeSlider" id="sliderValue">300px</label>
+        <div id="gridSelector" class="grid-selector-wrapper">
+          <div class="grid-label" id="gridLabel">3×3</div>
+          <div class="grid-selector">
+            <div class="grid-container" id="gridContainer"></div>
+          </div>
+        </div>
+        <div id="sizeSliderWrapper" class="size-slider-wrapper" style="display: none;">
+          <input type="range" id="sizeSlider" min="10" max="1000" value="300" />
+          <label for="sizeSlider" id="sliderValue">300px</label>
+        </div>
       </div>
       <div class="spacer"></div>
       <textarea

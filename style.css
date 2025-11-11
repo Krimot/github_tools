@@ -124,3 +124,53 @@ body {
     transform: translateX(40px);
     width: 80px;
 }
+
+/* グリッド選択UI */
+.grid-selector-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.grid-label {
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+    min-width: 40px;
+    text-align: center;
+}
+
+.grid-selector {
+    position: relative;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(6, 20px);
+    grid-template-rows: repeat(6, 20px);
+    gap: 2px;
+    padding: 8px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}
+
+.grid-cell {
+    width: 20px;
+    height: 20px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    transition: background-color 0.1s;
+}
+
+.grid-cell:hover,
+.grid-cell.active {
+    background-color: #4a90e2;
+}
+
+.size-slider-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}

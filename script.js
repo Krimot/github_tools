@@ -8,6 +8,62 @@ document.getElementById('sizeSlider').addEventListener('input', function() {
 });
 
 let imageIsActive = false; // 初期モード(false)は表 trueは画像サイズ指定
+let gridRows = 3;
+let gridCols = 3;
+
+// グリッドセルを生成
+function initializeGrid() {
+    const container = document.getElementById('gridContainer');
+    container.innerHTML = '';
+
+    for (let row = 0; row < 6; row++) {
+        for (let col = 0; col < 6; col++) {
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell';
+            cell.dataset.row = row + 1;
+            cell.dataset.col = col + 1;
+
+            cell.addEventListener('mouseenter', function() {
+                highlightGrid(parseInt(this.dataset.row), parseInt(this.dataset.col));
+            });
+
+            cell.addEventListener('click', function() {
+                selectGrid(parseInt(this.dataset.row), parseInt(this.dataset.col));
+            });
+
+            container.appendChild(cell);
+        }
+    }
+}
+
+// グリッドをハイライト
+function highlightGrid(rows, cols) {
+    const cells = document.querySelectorAll('.grid-cell');
+    cells.forEach(cell => {
+        const cellRow = parseInt(cell.dataset.row);
+        const cellCol = parseInt(cell.dataset.col);
+
+        if (cellRow <= rows && cellCol <= cols) {
+            cell.classList.add('active');
+        } else {
+            cell.classList.remove('active');
+        }
+    });
+
+    document.getElementById('gridLabel').innerText = `${rows}×${cols}`;
+}
+
+// グリッドを選択
+function selectGrid(rows, cols) {
+    gridRows = rows;
+    gridCols = cols;
+    convertText();
+}
+
+// グリッドコンテナからマウスが離れたときの処理
+document.getElementById('gridContainer').addEventListener('mouseleave', function() {
+    highlightGrid(gridRows, gridCols);
+});
 
 function convertText() {
     var inputText = document.getElementById('inputText').value;
@@ -17,14 +73,34 @@ function convertText() {
     var outputText = '';
 
     if (imageIsActive === false) {
-        var header = new Array(elements.length + 1).join('| ') + '|';
-        var outputLine = '|' + elements.join('|') + '|';
-        outputText = header + '\n|' + new Array(elements.length + 1).join('---|') + '\n' + outputLine;
-        // 入力が改行とスペースのみの場合のメッセージ
-        if (!elements.some(element => element !== '')) {
+        // 表モード: 指定された行列数でテーブルを作成
+        if (elements.length === 0) {
             outputText = "有効な文字列がありません";
+        } else {
+            var lines = [];
+
+            // ヘッダー行
+            var headerCells = new Array(gridCols).fill('').join('|');
+            lines.push('|' + headerCells + '|');
+
+            // 区切り行
+            var separatorCells = new Array(gridCols).fill('---').join('|');
+            lines.push('|' + separatorCells + '|');
+
+            // データ行を作成
+            for (var i = 0; i < elements.length; i += gridCols) {
+                var rowElements = elements.slice(i, i + gridCols);
+                // 列数に満たない場合は空セルで埋める
+                while (rowElements.length < gridCols) {
+                    rowElements.push(' ');
+                }
+                lines.push('|' + rowElements.join('|') + '|');
+            }
+
+            outputText = lines.join('\n');
         }
     } else if (imageIsActive === true) {
+        // 画像サイズ指定モード
         var size = document.getElementById('sizeSlider').value;
         var urlRegex = /\((https?:\/\/[^\s)]+)\)/; // URLを抽出する正規表現
         var mappedElements = elements.map(function(element) {
@@ -47,15 +123,21 @@ function toggleSwitch() {
     const toggleButton = document.querySelector('.toggle-btn');
     const leftLabel = document.querySelector('.left-label');
     const rightLabel = document.querySelector('.right-label');
+    const gridSelector = document.getElementById('gridSelector');
+    const sizeSliderWrapper = document.getElementById('sizeSliderWrapper');
 
     if (imageIsActive) {
         toggleButton.classList.add('active');
         leftLabel.classList.remove('active');
         rightLabel.classList.add('active');
+        gridSelector.style.display = 'none';
+        sizeSliderWrapper.style.display = 'flex';
     } else {
         toggleButton.classList.remove('active');
         leftLabel.classList.add('active');
         rightLabel.classList.remove('active');
+        gridSelector.style.display = 'flex';
+        sizeSliderWrapper.style.display = 'none';
     }
     convertText(); // トグルの状態を変更した後に変換を実行
 }
@@ -69,10 +151,14 @@ document.getElementById('outputText').addEventListener('click', async function()
     } catch (err) {
         console.error('Error in copy text: ', err);
     }
-    
+
     // コピーしたことを知らせるためトーストを表示
     var toast = document.getElementById('toast');
     document.getElementById('toastContent').innerText = document.getElementById('outputText').innerText;
     toast.className = "toast show";
     setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
 });
+
+// ページ読み込み時にグリッドを初期化
+initializeGrid();
+highlightGrid(gridRows, gridCols);
