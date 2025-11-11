@@ -14,22 +14,19 @@ function resizeCanvas() {
     initDots();
 }
 
-// 最も近い格子線からの距離を計算
-function getDistanceToNearestGridLine(x, y) {
-    const distToVerticalLine = Math.abs((x % GRID_LINE_SPACING) - GRID_LINE_SPACING / 2);
-    const distToHorizontalLine = Math.abs((y % GRID_LINE_SPACING) - GRID_LINE_SPACING / 2);
-    return Math.min(distToVerticalLine, distToHorizontalLine);
-}
+// 最も近い格子線の位置を計算
+function getNearestGridLinePosition(x, y) {
+    const nearestVerticalLine = Math.round(x / GRID_LINE_SPACING) * GRID_LINE_SPACING;
+    const nearestHorizontalLine = Math.round(y / GRID_LINE_SPACING) * GRID_LINE_SPACING;
 
-// 距離に基づいて表示確率を計算（密度で格子を表現）
-function getShouldDisplayInGridMode(distance) {
-    // 格子線に近いほど密度を高くする
-    if (distance < 15) {
-        return true; // 100%表示（格子線上）
-    } else if (distance < 25) {
-        return Math.random() > 0.8; // 20%の確率で表示
+    const distToVertical = Math.abs(x - nearestVerticalLine);
+    const distToHorizontal = Math.abs(y - nearestHorizontalLine);
+
+    // より近い格子線を選択
+    if (distToVertical < distToHorizontal) {
+        return { x: nearestVerticalLine, y: y, isVertical: true };
     } else {
-        return Math.random() > 0.98; // 2%の確率で表示
+        return { x: x, y: nearestHorizontalLine, isVertical: false };
     }
 }
 
@@ -38,11 +35,11 @@ function initDots() {
     dots = [];
     for (let y = -DOT_SPACING; y < canvas.height + DOT_SPACING; y += DOT_SPACING) {
         for (let x = -DOT_SPACING; x < canvas.width + DOT_SPACING; x += DOT_SPACING) {
-            // 全てのドットを作成（格子判定は描画時に行う）
             dots.push({
                 baseX: x,
                 baseY: y,
-                baseZ: 0,
+                targetX: x,
+                targetY: y,
                 currentX: x,
                 currentY: y,
                 currentZ: 0,
@@ -60,25 +57,31 @@ function updateDots() {
     const time = Date.now() * 0.001;
 
     dots.forEach(dot => {
-        // 大きな揺れを追加（並びは維持）
+        // 大きな揺れを追加
         const bigWaveX = Math.sin(time * 0.4 + dot.phase) * 8;
         const bigWaveY = Math.cos(time * 0.35 + dot.phaseOffset) * 8;
         const secondaryWaveX = Math.sin(time * 0.6 + dot.phase * 1.5) * 5;
         const secondaryWaveY = Math.cos(time * 0.55 + dot.phaseOffset * 1.3) * 5;
 
         if (imageIsActive === false) {
-            // Table mode: Grid formation with density
+            // Table mode: Move dots toward grid lines
+            const gridPos = getNearestGridLinePosition(dot.baseX, dot.baseY);
+
+            // 格子線に向かって移動（完全には到達しない）
+            const moveToGridX = (gridPos.x - dot.baseX) * 0.6;
+            const moveToGridY = (gridPos.y - dot.baseY) * 0.6;
+
             // 波状の動き
             const waveX = Math.sin(dot.baseX * 0.02 + time * 0.8) * Math.cos(dot.baseY * 0.02 + time * 0.6);
             const waveY = Math.cos(dot.baseX * 0.015 + time * 0.7) * Math.sin(dot.baseY * 0.015 + time * 0.5);
 
             dot.targetZ = (waveX + waveY) * 40 + 40;
 
-            // 大きな揺れを適用（基本位置からの相対移動）
-            dot.currentX = dot.baseX + bigWaveX + secondaryWaveX;
-            dot.currentY = dot.baseY + bigWaveY + secondaryWaveY;
+            // 格子線への移動 + 揺れ
+            dot.targetX = dot.baseX + moveToGridX + bigWaveX + secondaryWaveX;
+            dot.targetY = dot.baseY + moveToGridY + bigWaveY + secondaryWaveY;
         } else {
-            // Size mode: 3D wave toward center (no grid)
+            // Size mode: 3D wave toward center
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
             const dx = dot.baseX - centerX;
@@ -89,15 +92,18 @@ function updateDots() {
             const wave = Math.sin(distance * 0.02 - time * 2) * 100;
             dot.targetZ = wave + 60;
 
-            // 波に合わせて大きく位置を動かす
+            // 波に合わせて位置を動かす
             const angle = Math.atan2(dy, dx);
             const posWave = Math.sin(distance * 0.02 - time * 2) * 10;
-            dot.currentX = dot.baseX + Math.cos(angle) * posWave + bigWaveX + secondaryWaveX;
-            dot.currentY = dot.baseY + Math.sin(angle) * posWave + bigWaveY + secondaryWaveY;
+
+            dot.targetX = dot.baseX + Math.cos(angle) * posWave + bigWaveX + secondaryWaveX;
+            dot.targetY = dot.baseY + Math.sin(angle) * posWave + bigWaveY + secondaryWaveY;
         }
 
-        // Smooth Z interpolation
-        const ease = 0.08;
+        // Smooth interpolation（ゆるやかな移動）
+        const ease = 0.05;
+        dot.currentX += (dot.targetX - dot.currentX) * ease;
+        dot.currentY += (dot.targetY - dot.currentY) * ease;
         dot.currentZ += (dot.targetZ - dot.currentZ) * ease;
     });
 }
@@ -106,21 +112,11 @@ function updateDots() {
 function renderDots() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // 全てのドットを表示
     dots.forEach(dot => {
-        // 表モードの場合のみ格子判定を行う
-        if (imageIsActive === false) {
-            const distToLine = getDistanceToNearestGridLine(dot.baseX, dot.baseY);
-            if (!getShouldDisplayInGridMode(distToLine)) {
-                return; // このドットは表示しない
-            }
-        }
-        // サイズ指定モードでは全て表示
-
-        // Z値に基づいてサイズと不透明度をわずかに変化（主に密度で表現）
-        const zFactor = (dot.currentZ + 40) / 180; // 0～1の範囲に正規化
+        // Z値に基づいてサイズと不透明度をわずかに変化
+        const zFactor = (dot.currentZ + 40) / 180;
         const radius = DOT_BASE_RADIUS + (DOT_MAX_RADIUS - DOT_BASE_RADIUS) * Math.max(0, Math.min(1, zFactor)) * 0.5;
-
-        // 不透明度：0.6〜1.0の範囲でわずかに変化
         const opacity = Math.max(0.6, Math.min(1, 0.6 + zFactor * 0.4));
 
         ctx.beginPath();
