@@ -23,6 +23,7 @@ body {
     box-sizing: border-box;
     padding: 10px;
     margin: 0 auto;
+    font-family: monospace;
 }
 
 #inputText {
@@ -36,6 +37,8 @@ body {
 
 #outputText {
     border: 1px solid #ddd;
+    white-space: pre-wrap;
+    word-wrap: break-word;
 }
 
 .toast {
@@ -123,4 +126,77 @@ body {
 .toggle-btn.active {
     transform: translateX(40px);
     width: 80px;
+}
+
+/* グリッド選択UI */
+.grid-selector-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.grid-label {
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+    min-width: 90px;
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+    padding: 4px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+}
+
+.grid-label:hover {
+    background-color: #f0f0f0;
+}
+
+.grid-selector {
+    position: relative;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(6, 20px);
+    grid-template-rows: repeat(6, 20px);
+    gap: 2px;
+    padding: 8px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 4px;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.grid-cell {
+    width: 20px;
+    height: 20px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    transition: background-color 0.1s;
+}
+
+.grid-cell:hover,
+.grid-cell.active {
+    background-color: #4a90e2;
+}
+
+.size-slider-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* 改行記号のスタイル */
+.newline-symbol {
+    color: #ccc;
+    font-size: 0.9em;
+    user-select: none;
 }
