@@ -32,9 +32,13 @@ function initDots() {
             // 格子線に向かう強さをランダムに設定（0.2～0.9の範囲）
             const gridAttraction = 0.2 + Math.random() * 0.7;
 
+            // 初期位置にランダムオフセットを追加（-5～5pxの範囲）
+            const randomOffsetX = (Math.random() - 0.5) * 10;
+            const randomOffsetY = (Math.random() - 0.5) * 10;
+
             dots.push({
-                baseX: x,
-                baseY: y,
+                baseX: x + randomOffsetX,
+                baseY: y + randomOffsetY,
                 targetX: x,
                 targetY: y,
                 currentX: x,
@@ -89,7 +93,7 @@ function updateDots() {
             dot.targetX = dot.baseX + moveToGridX + bigWaveX + secondaryWaveX;
             dot.targetY = dot.baseY + moveToGridY + bigWaveY + secondaryWaveY;
         } else {
-            // Size mode: 3D wave toward center
+            // Size mode: 3D wave toward center with more freedom
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
             const dx = dot.baseX - centerX;
@@ -100,12 +104,13 @@ function updateDots() {
             const wave = Math.sin(distance * 0.02 + time * 2) * 100;
             dot.targetZ = wave + 60;
 
-            // 波に合わせて位置を動かす
+            // 波に合わせて位置を動かす（より大きく移動）
             const angle = Math.atan2(dy, dx);
-            const posWave = Math.sin(distance * 0.02 + time * 2) * 10;
+            const posWave = Math.sin(distance * 0.02 + time * 2) * 20;
 
-            dot.targetX = dot.baseX + Math.cos(angle) * posWave + bigWaveX + secondaryWaveX;
-            dot.targetY = dot.baseY + Math.sin(angle) * posWave + bigWaveY + secondaryWaveY;
+            // 初期位置からより自由に離れる
+            dot.targetX = dot.baseX + Math.cos(angle) * posWave + bigWaveX * 2 + secondaryWaveX * 2;
+            dot.targetY = dot.baseY + Math.sin(angle) * posWave + bigWaveY * 2 + secondaryWaveY * 2;
         }
 
         // Smooth interpolation（ゆるやかな移動）
