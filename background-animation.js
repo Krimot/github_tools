@@ -2,9 +2,9 @@
 const canvas = document.getElementById('dotCanvas');
 const ctx = canvas.getContext('2d');
 let dots = [];
-const DOT_SPACING = 15;
-const DOT_BASE_RADIUS = 1.5;
-const DOT_MAX_RADIUS = 3;
+const DOT_SPACING = 10;
+const DOT_BASE_RADIUS = 1;
+const DOT_MAX_RADIUS = 1.2;
 const GRID_LINE_SPACING = 150; // 格子線の間隔
 
 // Canvas size setup
@@ -101,12 +101,12 @@ function updateDots() {
             const distance = Math.sqrt(dx * dx + dy * dy);
 
             // 中心からの距離に基づく波（中心に向かう）
-            const wave = Math.sin(distance * 0.02 + time * 2) * 100;
+            const wave = Math.sin(distance * 0.03 + time * 2) * 100;
             dot.targetZ = wave + 60;
 
             // 波に合わせて位置を動かす（より大きく移動）
             const angle = Math.atan2(dy, dx);
-            const posWave = Math.sin(distance * 0.02 + time * 2) * 20;
+            const posWave = Math.sin(distance * 0.02 + time * 1) * 20;
 
             // 初期位置からより自由に離れる
             dot.targetX = dot.baseX + Math.cos(angle) * posWave + bigWaveX * 2 + secondaryWaveX * 2;
@@ -139,7 +139,7 @@ function renderDots() {
         const dx = dot.currentX - centerX;
         const dy = dot.currentY - centerY;
         const distanceFromCenter = Math.sqrt(dx * dx + dy * dy);
-        const edgeFade = 1 - Math.pow(distanceFromCenter / maxDistance, 2) * 0.7; // 周囲を最大70%暗く
+        const edgeFade = 1 - Math.pow(distanceFromCenter / maxDistance, 2) * 0.9; // 周囲を最大90%暗く
 
         let opacity = Math.max(0.6, Math.min(1, 0.6 + zFactor * 0.4));
         opacity *= edgeFade; // 周囲のフェード効果を適用
